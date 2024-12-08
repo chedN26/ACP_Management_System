@@ -190,7 +190,7 @@ def unit_details(i):
     
     def refresh_table():
         refresh_bill()
-        refreshed_unit_query = """SELECT * FROM bill_tbl WHERE unit_id = %s"""
+        refreshed_unit_query = """SELECT * FROM bill_tbl WHERE unit_id = %s ORDER BY month DESC"""
         refreshed_unit_values = (save_id,)
         print("Save ID: ", save_id)
         refreshed_bill = retrieve_data(refreshed_unit_query, refreshed_unit_values)
@@ -215,7 +215,7 @@ def unit_details(i):
 
     def graphs():
         # Acessing the query result
-        result_query = """SELECT * FROM bill_tbl WHERE unit_id = %s"""
+        result_query = """SELECT * FROM bill_tbl WHERE unit_id = %s ORDER BY month DESC"""
         result_values = (save_id,)
         result = retrieve_data(result_query, result_values)
 
@@ -681,7 +681,7 @@ def unit_details(i):
     details_overview.grid(row= 0, column=0, pady=5, padx=5, ipadx=5)
 
     # Display elements inside details_overview (Overview Tab\apartment_details_frame\details_overview\)
-    result_overview_query = """SELECT * FROM bill_tbl where unit_id = %s"""
+    result_overview_query = """SELECT * FROM bill_tbl where unit_id = %s ORDER BY month DESC"""
     result_overview_values = (save_id,)
     result_overview = retrieve_data(result_overview_query, result_overview_values)
 
