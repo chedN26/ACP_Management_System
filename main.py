@@ -1,16 +1,15 @@
-import customtkinter as ctk
-import tkinter as tk
-from tkinter import *
-from tkinter import messagebox
-from PIL import Image
+import customtkinter as ctk # UI-library based on Tkinter, which provides new, modern and fully customizable widgets
+import tkinter as tk # Library that can be used to construct basic graphical user interface (GUI) applications
+from tkinter import * 
+from tkinter import messagebox # Widget used to display the message boxes in the python applications
+from PIL import Image # Module provides functions to load images from files, and to create new images
 import mysql.connector # Package for using XAMPP MySql; use the command "python3 -m pip install mysql-connector"
 from mysql.connector import Error # Handles execution error with the database
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg # class from the matplotlib library, which allows embedding matplotlib figures into a Tkinter application as interactive plots
 import matplotlib.pyplot as plt # Package for using GUI charts
-import sys
-from datetime import datetime
-from sql import mysql_query, retrieve_data, refresh_bill
-#from functions import *
+import sys # Module for script termination (sys.exit())
+from datetime import datetime # Class to work with dates and times in a variety of formats
+from sql import mysql_query, retrieve_data, refresh_bill # Customized module for handling sql query
 
 # Color palette of the charts
 plt.rcParams["axes.prop_cycle"] = plt.cycler(
@@ -67,11 +66,12 @@ def up(y):
 # ROOM SIZE HEIGHT 2095 - 2265
 # 170px
 
+# Function to handle user login
 def login():
     username = user_entry.get()
     password = password_entry.get()
 
-    if (username=="c" and password=="c"):
+    if (username=="admin" and password=="1234"):
         user_entry.delete(0, 'end')
         password_entry.delete(0, 'end')
         # down_values = {"y": apartment_down, "frame": frame, "root": root}
@@ -111,11 +111,11 @@ center_height = window_height/2
 # Create a parent window
 root = ctk.CTk() # Instatiate the window
 root.title("DueDeet") # Set the window title
-#root.iconbitmap('dd.ico')
 root.resizable(False, False) # Disable resizable window
 root.geometry('{}x{}+{}+{}'.format(window_width, window_height, -9, -1)) # Set the window size and position
 
-root.protocol("WM_DELETE_WINDOW", on_close) # Dependency on root creation
+# Handles program termination
+root.protocol("WM_DELETE_WINDOW", on_close)
 
 # Load the image using PIL
 original_image = Image.open('sunset-ps.png')  # Replace with your image path
@@ -127,9 +127,10 @@ new_width = window_width  # Example width you want to set
 width, height = original_image.size
 new_height = int((new_width / width) * height)
 
+# Variables for GUI animation (login, logout, view unit)
 global move_up
 global apartment_down
-#global max_down
+global max_down
 move_up = 0
 apartment_down = -1530
 max_down = -abs(new_height)+window_height
@@ -145,7 +146,7 @@ my_image = ctk.CTkImage(light_image=original_image, dark_image=original_image, s
 image_label = ctk.CTkLabel(frame, text="", image=my_image)
 image_label.place(x=0 , y=0)
 
-# Login frame
+# Login frame =========================================================================================
 login_height = 360
 login_width = login_height * 1.618
 login_frame = ctk.CTkFrame(frame, width=login_width, height=login_height, fg_color="#1737a7")
@@ -164,14 +165,15 @@ wrong_warning = ctk.CTkLabel(login_frame, text="", text_color="red")
 
 login_button = ctk.CTkButton(login_frame, text="Login", command=login)
 login_button.grid(row=3 ,column=0, pady=20)
+# Login frame =========================================================================================
 
-
+# Function to load a specific apartment unit details
 def unit_details(i):
-    #apartment_details_frame.place(x=100,y=2350)
+    # Variable for filtering which unit details to select
     global save_id
     save_id = i
 
-    # Create Tab View
+    # Create Tab View (Overview Tab / Previous Tab)
     global overview_width
     overview_width = ((window_width-300))//3
     apartment_tab = ctk.CTkTabview(frame, width=overview_width)
@@ -187,24 +189,21 @@ def unit_details(i):
     water_overview = ctk.CTkFrame(apartment_details_frame, fg_color="#244dbb", border_width=1, border_color="#244dbb")
     electricity_overview = ctk.CTkFrame(apartment_details_frame, fg_color="#5d56c1", border_width=1, border_color="#5d56c1")
     
-    
+    # Function to refresh entries table in Previous Tab when there are changes done
     def refresh_table():
         refresh_bill()
         refreshed_unit_query = """SELECT * FROM bill_tbl WHERE unit_id = %s ORDER BY month DESC"""
         refreshed_unit_values = (save_id,)
         print("Save ID: ", save_id)
         refreshed_bill = retrieve_data(refreshed_unit_query, refreshed_unit_values)
-
         # Refresh the table
         for widget in unit_table_frame.winfo_children():  # Iterate over all widgets inside the frame
             widget.destroy()
-
         if refreshed_bill:
-            root.after(10, populate_parent_frame(unit_table_frame, refreshed_bill, labels))
-            
+            root.after(10, populate_parent_frame(unit_table_frame, refreshed_bill, labels))    
         print("Table Refreshed")
         
-        
+    # Function to refresh graphs and charts in Overview Tab when there are changes done    
     def refresh_graph():
         for widget in water_overview.winfo_children():  # Iterate over all widgets inside the frame
             widget.destroy()
@@ -213,6 +212,7 @@ def unit_details(i):
         plt.close('all')
         graphs()
 
+    # Function or loading the charts and graphs
     def graphs():
         # Acessing the query result
         result_query = """SELECT * FROM bill_tbl WHERE unit_id = %s ORDER BY month DESC"""
@@ -322,11 +322,11 @@ def unit_details(i):
         
         water_overview.grid(row= 0, column=1, pady=5, padx=0, ipadx=5)
         electricity_overview.grid(row= 0, column=2, pady=5, padx=5, ipadx=5)
-    #END graphs function
+    # END graphs function
     
     
     # TOP LEVEL ======================================================================================== TOP LEVEL
-    # Function to open top level window
+    # Function to open top level window for new entry input
     def open_new():
         new_window = ctk.CTkToplevel(root)
         new_window.title("New Entry")
@@ -340,7 +340,6 @@ def unit_details(i):
             refresh_bill()
             refresh_table()
             new_window.destroy()
-        # END close_top function
         
         new_window.protocol("WM_DELETE_WINDOW", close_top)
 
@@ -388,7 +387,6 @@ def unit_details(i):
         query_label_water.grid(row=4, column=0)
         query_label_electricity = ctk.CTkLabel(new_window, text="")
         query_label_electricity.grid(row=5, column=0)
-        # END TOP LEVEL WINDOW ENTRY FRAME ===============================================
     # TOP LEVEL ======================================================================================== TOP LEVEL
 
         # Function to INSERT data to database
@@ -486,8 +484,8 @@ def unit_details(i):
         close_button.grid(row=3 ,column=0 , pady=10)
         #END create_entry function
     # END open_new function
-    # TOP LEVEL END ========================================================================================
     
+    # Load the charts and graphs
     graphs()
 
     # Function to update a row in the database
@@ -504,8 +502,6 @@ def unit_details(i):
             month_water = convert_date_water.month
             year_water = convert_date_water.year
             print("Date water check.")
-            # print("MONTH WATER", month_water)
-            # print("YEAR WATER", year_water)
 
         if rate_water:
             update_water_query = """UPDATE water_tbl SET unit_id = %s, prev_meter = %s, current_meter = %s, rate = %s, date = %s WHERE MONTH(date) = %s AND YEAR(date) = %s"""
@@ -597,7 +593,7 @@ def unit_details(i):
     # END delete_row function
     
 
-    # Function to edit entry
+    # Function to edit previous entry
     def edit_row(id, month, year):
         water_list_query = """SELECT * FROM water_tbl WHERE MONTH(date) = %s AND YEAR(date) = %s"""
         water_list_values = (month, year)
@@ -640,7 +636,7 @@ def unit_details(i):
             edit_date_electricity.configure(text_color='gray')
     # END edit_row function
 
-
+    # Function to remove text in the textfields 
     def remove_text():
         edit_date_water.configure(state='normal')
         edit_date_water.configure(text_color='black')
@@ -677,7 +673,7 @@ def unit_details(i):
 
     # Display frames inside Overview Tab ============================================================================ OVERVIEW TAB
     apartment_details_frame.pack() # Display parent frame in Overview Tab
-    #Display frames inside apartment_details_frame (Overview Tab\apartment_details_frame\)
+    # Display frames inside apartment_details_frame (Overview Tab\apartment_details_frame\)
     details_overview.grid(row= 0, column=0, pady=5, padx=5, ipadx=5)
 
     # Display elements inside details_overview (Overview Tab\apartment_details_frame\details_overview\)
@@ -721,7 +717,7 @@ def unit_details(i):
 
 
     # Display frames inside Previous Tab ===========================+================================================ PREVIOUS TAB
-    # Function to create a child frame for each tuple
+    # Function to create a child frame for each tuple (inside Previous Tab table)
     def create_child_frame(parent, tuple_data, labels):
         # Create a frame for each tuple (child frame)
         child_frame = ctk.CTkFrame(parent, border_width=1, border_color='white')
@@ -742,7 +738,7 @@ def unit_details(i):
         return child_frame
     # END create_child_frame function
 
-    # Function to populate the parent frame with child frames based on data
+    # Function to populate the parent frame with child frames based on data (inside Previous Tab table)
     def populate_parent_frame(parent, data, labels): # "data"  argument is the "result" variable with 'bill_tbl' argument
         # Clear any existing children in the parent frame (if re-populating)
         for widget in parent.winfo_children():
@@ -754,7 +750,7 @@ def unit_details(i):
             child_frame.pack(fill=tk.X, pady=2)  # Add the child frame to the parent
     #END populate_parent_frame function
 
-
+    # Text Fields and Labels in the Previous tab for editing entries 
     unit_edit_frame = ctk.CTkFrame(tab_2)
     unit_table_frame = ctk.CTkScrollableFrame(tab_2, width=window_width-300, height=10)
 
@@ -848,11 +844,10 @@ def unit_details(i):
             buttons_dict[button_name].configure(fg_color="yellow")  # Modify color
 
 
-    # Important
-    # down_values = {"y": max_down, "move_up": move_up, "frame": frame, "root": root}
-    # down(down_values)
+    # Animate the GUI to bottom after user selects an apartment unit
     down(max_down)
     
+    # Higlight the selected unit color and disable other units
     change_button_color(save_id)
     unit1_button.configure(state="disabled")
     unit2_button.configure(state="disabled")
@@ -865,7 +860,7 @@ def unit_details(i):
 # END unit_details function
 
 
-# Apartment Units Button
+# Apartment Units Button (selectable units in the GUI after login)
 unit1_image = ctk.CTkImage(light_image=Image.open('apartment-unit.png'), dark_image=Image.open('apartment-unit.png'), size=(245, 160))
 unit1_button = ctk.CTkButton(frame, text="", image=unit1_image, width=250, height=170, corner_radius=0, hover_color="yellow", fg_color='black', command=lambda save_id = 1: unit_details(save_id))
 unit1_button.place(x=265, y=2095)
